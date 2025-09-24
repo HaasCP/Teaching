@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle, Polygon, FancyArrow
+from PIL import Image
 
 
 def signif(x, p):
@@ -475,3 +476,226 @@ def draw_chromatography_pencils():
 
     plt.tight_layout()
     plt.show()
+
+
+L_mm = 150.0
+beta = 2.0
+_TWO_PI = 2.0 * np.pi
+
+
+def _gauss_area_normalized(x, mu, sigma, area=1.0):
+    """Gaussian with constant AREA (not height)."""
+    sigma = max(sigma, 1e-9)
+    amp = area / (np.sqrt(_TWO_PI) * sigma)
+    return amp * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
+
+
+def _fig_to_rgb_array(fig):
+    fig.canvas.draw()
+    w, h = fig.canvas.get_width_height()
+    buf = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8)
+    rgba = buf.reshape(h, w, 4)
+    return rgba[..., :3].copy()
+
+
+def make_ldiffusion_gif(
+    u_mm_s=2.0,
+    D_mm2_s=1.0e-3,
+    n_frames=80,
+    fps=20,
+    path="bterm_travel.gif",
+    area=1.0,  # constant peak area (arb. units)
+    start_frac=0.02,  # start animation at t = start_frac * (L/u) to avoid singularity,
+    title=r"Longitudinal diffusion ($B/u$): band travel & broadening",
+):
+    """
+    Longitudinal diffusion (B/u) GIF:
+      - Axial band travels from z=0 to z=L and broadens.
+      - Peak area is conserved (height adapts as sigma grows/shrinks).
+      - Legend is placed OUTSIDE the axes to the right.
+      - Bottom/right margins increased so labels/legend are not cut.
+    """
+    u = max(u_mm_s, 1e-9)
+    D = max(D_mm2_s, 1e-12)
+    t_end = L_mm / u
+
+    # Time grid (avoid t=0 to prevent infinite height with area-normalized Gaussian)
+    t0 = max(start_frac * t_end, 1e-3)
+    t = np.linspace(t0, t_end, n_frames)
+
+    # For consistent y-limits across frames: compute smallest sigma_z -> largest peak height
+    sigma_z_min = np.sqrt(beta * D * t0)
+    amp_max = area / (np.sqrt(_TWO_PI) * sigma_z_min)  # peak height at t0
+    y_top = amp_max * 1.15
+
+    # Axial grid
+    z = np.linspace(0, L_mm, 3000)
+
+    frames = []
+    for ti in t:
+        zc = u * ti
+        sigma_z = np.sqrt(beta * D * ti)
+        y = _gauss_area_normalized(z, zc, sigma_z, area=area)
+
+        fig, ax = plt.subplots(figsize=(6.6, 3.6))
+        # Make room for legend on the right and xlabel at the bottom
+        fig.subplots_adjust(left=0.1, right=0.95, bottom=0.15, top=0.9)
+
+        ax.plot(z, y, lw=2.0, label="Peak (B-term only, constant area)")
+        ax.axvline(L_mm, ls=":", lw=1.2, color="0.3")
+        ax.set_xlim(0, L_mm * 1.02)
+        ax.set_ylim(0, y_top)
+        ax.set_xlabel(r"Axial position, $z$ (mm)")
+        ax.set_ylabel("Normalized band profile (\u2013)")
+        ax.set_title(title)
+        ax.grid(True, alpha=0.3)
+
+        # Info box
+        info = (
+            rf"$u={u:.2f}$ mm s$^{{-1}}$,  $D_m={D:.4f}$ mm$^2$ s$^{{-1}}$"
+            + "\n"
+            + rf"$t={ti:.2f}$ s,  $\sigma_z(t)=\sqrt{{\beta D_m t}}={sigma_z:.2f}$ mm"
+        )
+        ax.text(
+            0.02,
+            0.98,
+            info,
+            transform=ax.transAxes,
+            ha="left",
+            va="top",
+            fontsize=9,
+            bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="0.8"),
+        )
+
+        frames.append(Image.fromarray(_fig_to_rgb_array(fig)))
+        plt.close(fig)
+
+    if frames:
+        frames[0].save(
+            path,
+            save_all=True,
+            append_images=frames[1:],
+            duration=int(2000 / u_mm_s / fps),
+            loop=0,
+            optimize=True,
+        )
+
+
+def _gauss_pdf(x, mu, sigma):
+    sigma = max(sigma, 1e-12)
+    return (1.0 / (np.sqrt(2 * np.pi) * sigma)) * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
+
+
+def make_brownian_spread_gif(
+    path="brownian_spread.gif",
+    n_particles=1000,
+    D_mm2_s=1.0e-3,  # diffusion coefficient (mm^2/s)
+    t_end_s=120.0,  # total time (s)
+    dt_s=2,  # time step (s)
+    sigma0_mm=0.2,  # initial std dev (mm) around x=0
+    x_window_mm=6.0,  # half-width of x-axis window around 0 (for display)
+    bins=40,
+    fps=24,
+    seed=42,
+    title="Brownian spreading at a fixed location → Gaussian broadening (Einstein MSD)",
+):
+    """
+    Simulate 1D diffusion (no drift). Initial positions ~ N(0, sigma0^2).
+    Each step: x <- x + sqrt(2 D dt) * N(0,1).
+    Top panel: particles drawn with vertical jitter for readability.
+    Bottom panel: histogram (density=True) + theoretical Gaussian PDF with σ^2 = σ0^2 + 2 D t.
+    """
+    rng = np.random.default_rng(seed)
+    n_steps = max(2, int(np.ceil(t_end_s / dt_s)))
+    times = np.linspace(0.0, t_end_s, n_steps)
+
+    # Initial positions
+    x = rng.normal(loc=0.0, scale=sigma0_mm, size=n_particles)
+
+    # Precompute static axis limits
+    x_min = -x_window_mm
+    x_max = x_window_mm
+    y_top_hist = 1.0 / (
+        np.sqrt(2 * np.pi) * max(sigma0_mm, 1e-12)
+    )  # initial peak height; will decrease with t
+    y_top_hist *= 1.25
+
+    frames = []
+    for t in times:
+        # Diffusion step (skip step at t=0)
+        if t > 0.0:
+            x += np.sqrt(2.0 * D_mm2_s * dt_s) * rng.standard_normal(n_particles)
+
+        # Theoretical distribution at time t
+        mu_t = 0.0
+        sigma_t = np.sqrt(sigma0_mm**2 + 2.0 * D_mm2_s * t)
+
+        # --- Figure ---
+        fig, (ax_top, ax_bot) = plt.subplots(2, 1, figsize=(6.8, 5.6), sharex=True)
+        fig.subplots_adjust(left=0.12, right=0.92, bottom=0.14, top=0.90, hspace=0.18)
+
+        # Top: molecules as dots with vertical jitter just for separation
+        y_jitter = rng.uniform(-0.45, 0.45, size=n_particles)
+        ax_top.scatter(x, y_jitter, s=18, alpha=0.9, edgecolor="none")
+        ax_top.axvline(0.0, ls=":", lw=1.2, color="0.3")
+        ax_top.set_xlim(x_min, x_max)
+        ax_top.set_ylim(-0.6, 0.6)
+        ax_top.set_yticks([])
+        ax_top.set_title(title)
+        ax_top.set_ylabel("molecules (vertical jitter)")
+
+        ax_top.text(
+            0.02,
+            0.90,
+            rf"$D_m={D_mm2_s:.4f}$ mm$^2$ s$^{{-1}}$"
+            + "\n"
+            + rf"$t={t:5.2f}$ s"
+            + "\n"
+            + rf"$\sigma(t)=\sqrt{{\sigma_0^2+2Dt}}={sigma_t:.2f}$ mm",
+            transform=ax_top.transAxes,
+            ha="left",
+            va="top",
+            fontsize=9,
+            bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="0.8"),
+        )
+
+        # Bottom: histogram (density) + theoretical PDF (area=1)
+        ax_bot.hist(
+            x,
+            bins=bins,
+            range=(x_min, x_max),
+            density=True,
+            alpha=0.25,
+            color="tab:blue",
+            edgecolor="none",
+            label="Empirical density",
+        )
+        xx = np.linspace(x_min, x_max, 1000)
+        ax_bot.plot(
+            xx, _gauss_pdf(xx, mu_t, sigma_t), lw=2.0, label="Theoretical Gaussian PDF"
+        )
+        ax_bot.set_ylim(0.0, 2.0)
+        ax_bot.set_xlabel(r"Axial position, $x$ (mm)")
+        ax_bot.set_ylabel(r"Density [mm$^{-1}$]")
+        ax_bot.grid(True, alpha=0.3)
+        ax_bot.legend(loc="upper right", frameon=False)
+
+        # Capture frame
+        fig.canvas.draw()
+        w, h = fig.canvas.get_width_height()
+        buf = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8)
+        rgba = buf.reshape(h, w, 4)
+        frames.append(Image.fromarray(rgba[..., :3].copy()))
+        plt.close(fig)
+
+    # Save GIF
+    if frames:
+        frames[0].save(
+            path,
+            save_all=True,
+            append_images=frames[1:],
+            duration=int(2000 / fps),
+            loop=0,
+            optimize=True,
+        )
+    return path
