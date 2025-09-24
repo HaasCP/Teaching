@@ -74,7 +74,3 @@ This project is licensed as described in the **LICENSE** file.
   * LO3 Compare particle size effects on A and C, and reason about trade-offs among speed, resolution, and pressure limits.
   * L04 Make design decisions (e.g., choose u, L, and particle size) under realistic constraints such as pressure and extra-column broadening.
 * **Estimated time:** *25–40 minutes.*
-
-```
-::contentReference[oaicite:0]{index=0}
-```
