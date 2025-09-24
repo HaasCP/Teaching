@@ -59,9 +59,9 @@ This project is licensed as described in the **LICENSE** file.
 * **Title:** *“01 – Van Deemter in Practice.”*
    * **Audience:** *Students and practitioners in analytical chemistry, chromatography, or method development.*
    * **Prereqs:** *None.*
-   * **Learning outcomes:**
-     * LO1 Interpret the A, B/u, and C·u terms and explain how each dominates in different u-regimes.
-     * LO2 Identify the optimal flow rate uopt and corresponding Hmin, and relate H to plate number (N = L/H) and resolution (Rs).
-     * LO3 Compare particle size effects on A and C, and reason about trade-offs among speed, resolution, and pressure limits.
-     * L04 Make design decisions (e.g., choose u, L, and particle size) under realistic constraints such as pressure and extra-column broadening.
-   * **Estimated time:** *25–40 minutes.*
+   * **Learning objectives:**
+      * Explain A, B/u, and C·u terms and explain how each dominates in different u-regimes.
+      * Identify the optimal flow rate u_opt and corresponding H_min.
+      * Interpret how particle size d_p shifts u_opt and flattens H(u).
+      * Make practical flow/length choices given pressure limits.
+   * **Estimated time:** *15–30 minutes.*

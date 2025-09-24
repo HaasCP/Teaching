@@ -7517,20 +7517,20 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="Van-Deemter-in-Practice:-An-Interactive-Exploration-of-Chromatographic-Efficiency,-Flow-Rate,-and-Particle-Size">Van Deemter in Practice: An Interactive Exploration of Chromatographic Efficiency, Flow Rate, and Particle Size<a class="anchor-link" href="#Van-Deemter-in-Practice:-An-Interactive-Exploration-of-Chromatographic-Efficiency,-Flow-Rate,-and-Particle-Size">¶</a></h1><p>Christian P. Haas, September 2025</p>
+<h1 id="Van-Deemter-in-Practice">Van Deemter in Practice<a class="anchor-link" href="#Van-Deemter-in-Practice">¶</a></h1><p>Christian P. Haas, September 2025</p>
 <h2 id="Overview">Overview<a class="anchor-link" href="#Overview">¶</a></h2><p>This notebook turns the van Deemter equation into a hands-on playground. You’ll build intuition for how eddy diffusion (<em>A</em>), longitudinal diffusion (<em>B/u</em>), and mass transfer (<em>C·u</em>) shape plate height <em>H</em> as a function of flow rate <em>u</em>—and translate that into practical method-design choices for LC (and GC, where noted).</p>
 <h2 id="Learning-Objectives">Learning Objectives<a class="anchor-link" href="#Learning-Objectives">¶</a></h2><p>By the end, you will be able to:</p>
 <ul>
-<li>Interpret the <em>A</em>, <em>B/u</em>, and <em>C·u</em> terms and explain how each dominates in different <em>u</em>-regimes.</li>
-<li>Identify the optimal flow rate <em>u</em><sub>opt</sub> and corresponding <em>H</em><sub>min</sub>, and relate <em>H</em> to plate number (<em>N = L/H</em>) and resolution (<em>R</em><sub>s</sub>).</li>
-<li>Compare particle <strong>size</strong> effects on <em>A</em> and <em>C</em>, and reason about trade-offs among speed, resolution, and pressure limits.</li>
-<li>Make design decisions (e.g., choose <em>u</em>, <em>L</em>, and particle size) under realistic constraints such as pressure and extra-column broadening.</li>
+<li>Explain $A$, $B/u$, and $C\,u$ terms and explain how each dominates in different <em>u</em>-regimes.</li>
+<li>Identify the optimal flow rate $u_{\text{opt}}$ and corresponding $H_{\text{min}}$.</li>
+<li>Interpret how particle size $d_{\text{p}}$ shifts $u_{\text{opt}}$ and flattens $H(u)$.</li>
+<li>Make practical flow/length choices given pressure limits.</li>
 </ul>
 <h2 id="Audience-&amp;-Prerequisites">Audience &amp; Prerequisites<a class="anchor-link" href="#Audience-&amp;-Prerequisites">¶</a></h2><ul>
 <li><strong>Who:</strong> Students and practitioners in analytical chemistry, chromatography, or method development.</li>
 <li><strong>No coding required:</strong> Minimal Python familiarity helps only if you modify the content of the notebook.</li>
 </ul>
-<p><strong>Estimated time:</strong> 25–40 minutes.
+<p><strong>Estimated time:</strong> 15–30 minutes.
 <strong>Scope:</strong> LC throughout, with GC notes where diffusion/viscosity dominate differently.
 <strong>License:</strong> Content CC BY 4.0; example code MIT.
 <strong>Contributions:</strong> Issues and pull requests welcome (see <strong>Contributing</strong> in the repo).</p>
@@ -7578,6 +7578,9 @@ $$</p>
 </ul>
 <img alt="No description has been provided for this image" src="content/01/01-van-deemter.png" style="width:60%;"/>
 <p>With the link from $H$ to peak width in mind, let’s now ask <strong>what sets $H$ in the first place</strong> and why two of its contributions change with linear velocity $u$. We’ll take the terms one by one, starting with <strong>eddy diffusion $A$</strong>.</p>
+<blockquote>
+<p><strong>Scope note.</strong> The van Deemter relation $H(u)=A+\frac{B}{u}+C\,u$ strictly describes <strong>isocratic</strong> conditions. In <strong>gradient</strong> LC the intuition remains useful, but the terms become time/position-dependent “effective” values, so exact optima and slopes differ.</p>
+</blockquote>
 </div>
 </div>
 </div>
