@@ -1,6 +1,6 @@
 # Teaching
 
-**Most people can simply download the provided HTML files in the `notebooks/` folder and use them as-is**—no setup or installations required.
+**Most people can simply download the library using Code -> "Download ZIP", extract the files and open the HTML files in the `notebooks/` folder**—no setup or installations required.
 
 A lightweight, reusable scaffold for teaching materials—Jupyter notebooks and supporting docs—organized for workshops or university courses.
 
@@ -23,18 +23,10 @@ A lightweight, reusable scaffold for teaching materials—Jupyter notebooks and 
 
 ## 🚀 Quickstart
 
-### Option A: Use the HTMLs (no install)
-1. Open the `notebooks/` folder.
-2. Download the HTML file(s) you need.
-3. Double-click to open in your browser or drop into your LMS/website.
-
-> Tip: You can lightly customize text and images by opening an HTML file in any editor and saving your changes—still no build step required.
-
-### Option B: Run the notebooks (interactive)
+### Use the HTMLs (no install)
 **Clone**
    ```bash
    git clone https://github.com/HaasCP/Teaching.git
-   cd Teaching
    ```
 
 Open the files under `notebooks/`.
