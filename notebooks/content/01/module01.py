@@ -1,7 +1,11 @@
+from matplotlib.lines import Line2D
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle, Polygon, FancyArrow
 from PIL import Image
+
+
+_TWO_PI = 2.0 * np.pi
 
 
 def signif(x, p):
@@ -52,7 +56,7 @@ def van_deemter_plot(A=5.0, B=1.0, C=5.0, u_min=0.05, u_max=3.0, show_terms=True
     # figure
     fig, ax = plt.subplots(figsize=(7.2, 4.6))
     # make space for right-side legend
-    fig.subplots_adjust(right=0.82)
+    fig.subplots_adjust(right=0.65)
 
     # total curve
     ax.plot(u, H, linewidth=2.2, label="$H(u) = A + B/u + C \\cdot u$")
@@ -110,7 +114,7 @@ def van_deemter_plot(A=5.0, B=1.0, C=5.0, u_min=0.05, u_max=3.0, show_terms=True
 
     # compact legend
     ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5), frameon=False)
-    plt.show()
+    return fig, ax
 
 
 def van_deemter_particles_plot(
@@ -147,7 +151,7 @@ def van_deemter_particles_plot(
 
     fig, ax = plt.subplots(figsize=(7.2, 4.6))
     # make space for right-side legend
-    fig.subplots_adjust(right=0.82)
+    fig.subplots_adjust(right=0.75)
 
     for dp, label in particle_sizes:
         scale = dp / dp_ref
@@ -183,7 +187,7 @@ def van_deemter_particles_plot(
 
     # move legend outside
     ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5), frameon=False)
-    plt.show()
+    return fig, ax
 
 
 def _gaussian_sum(t, tR, sigma_t, heights):
@@ -277,7 +281,7 @@ def plot_chromatograms(
         ax.text(
             0.01,
             y_ann,
-            rf"$H={signif(H, 1)}\ \mathrm{{mm}},\ N\approx {signif(N, 2):,.0f}$",
+            rf"$H={signif(H, 2)}\ \mathrm{{mm}},\ N\approx {signif(N, 2):,.0f}$",
             fontsize=9,
             va="bottom",
         )
@@ -334,10 +338,10 @@ def plot_chromatograms(
     axes[-1].set_xlabel(r"Time (min)")
 
     fig.suptitle(
-        r"Effect of Plate Height $H$ on Chromatogram (3 peaks, same retention times) $-$ with resolutions $R_s$",
+        r"Effect of plate height $H$ (3 peaks, same retention times) $-$ with resolutions $R_s$",
         fontsize=12.5,
     )
-    plt.show()
+    return fig, axes
 
 
 def pencil(ax, x, y=1.0, width=0.8, height=4.2, band_specs=None, tip_h=0.6):
@@ -402,7 +406,7 @@ def draw_chromatography_pencils():
     c1, c2 = plt.rcParams["axes.prop_cycle"].by_key()["color"][:2]
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.set_xlim(0.5, 9.0)
+    ax.set_xlim(0.8, 8.8)
     ax.set_ylim(0, 6.4)  # a little headroom for the labels
     ax.axis("off")
 
@@ -414,7 +418,7 @@ def draw_chromatography_pencils():
     pencil(ax, x=x1, band_specs=[(2.6, 1.2, c1), (1.6, 1.0, c2)])
     ax.text(
         x1 + xw / 2,
-        6.2,
+        6.4,
         "Poor selectivity\nPoor efficiency",
         ha="center",
         va="top",
@@ -426,7 +430,7 @@ def draw_chromatography_pencils():
     pencil(ax, x=x2, band_specs=[(2.8, 0.8, c1), (1.8, 0.6, c2)])
     ax.text(
         x2 + xw / 2,
-        6.2,
+        6.4,
         "Poor selectivity\nMedium efficiency",
         ha="center",
         va="top",
@@ -438,7 +442,7 @@ def draw_chromatography_pencils():
     pencil(ax, x=x3, band_specs=[(2.8, 0.8, c1), (0.8, 0.6, c2)])
     ax.text(
         x3 + xw / 2,
-        6.2,
+        6.4,
         "Good selectivity\nMedium efficiency",
         ha="center",
         va="top",
@@ -450,7 +454,7 @@ def draw_chromatography_pencils():
     pencil(ax, x=x4, band_specs=[(3.0, 0.4, c1), (1.0, 0.2, c2)])
     ax.text(
         x4 + xw / 2,
-        6.2,
+        6.4,
         "Good selectivity\nGood efficiency",
         ha="center",
         va="top",
@@ -473,14 +477,7 @@ def draw_chromatography_pencils():
     ax.add_patch(arrow)
     ax.text(0.8, 0.2, "Bad", fontsize=12, ha="left", va="center")
     ax.text(8.6, 0.2, "Good", fontsize=12, ha="right", va="center")
-
-    plt.tight_layout()
-    plt.show()
-
-
-L_mm = 150.0
-beta = 2.0
-_TWO_PI = 2.0 * np.pi
+    return fig, ax
 
 
 def _gauss_area_normalized(x, mu, sigma, area=1.0):
@@ -515,6 +512,8 @@ def make_ldiffusion_gif(
       - Legend is placed OUTSIDE the axes to the right.
       - Bottom/right margins increased so labels/legend are not cut.
     """
+    L_mm = 150.0
+    beta = 2.0
     u = max(u_mm_s, 1e-9)
     D = max(D_mm2_s, 1e-12)
     t_end = L_mm / u
@@ -586,7 +585,7 @@ def _gauss_pdf(x, mu, sigma):
     return (1.0 / (np.sqrt(2 * np.pi) * sigma)) * np.exp(-0.5 * ((x - mu) / sigma) ** 2)
 
 
-def make_brownian_spread_gif(
+def make_brownian_gif(
     path="brownian_spread.gif",
     n_particles=1000,
     D_mm2_s=1.0e-3,  # diffusion coefficient (mm^2/s)
@@ -676,9 +675,58 @@ def make_brownian_spread_gif(
         )
         ax_bot.set_ylim(0.0, 2.0)
         ax_bot.set_xlabel(r"Axial position, $x$ (mm)")
-        ax_bot.set_ylabel(r"Density [mm$^{-1}$]")
+        ax_bot.set_ylabel(r"Density (mm$^{-1}$)")
         ax_bot.grid(True, alpha=0.3)
-        ax_bot.legend(loc="upper right", frameon=False)
+
+        # Peak and FWHM level/positions
+        peak = 1.0 / (np.sqrt(2.0 * np.pi) * max(sigma_t, 1e-12))
+        y_fwhm = 0.5 * peak  # height at FWHM
+        half_fwhm = np.sqrt(2.0 * np.log(2.0)) * sigma_t  # x at half-max (±)
+        left_x, right_x = -half_fwhm, +half_fwhm
+
+        # Gradient magnitude for a Gaussian: |∂c/∂x| at x=±sqrt(2 ln 2)σ is ∝ 1/σ^2.
+        # Use a normalized scale so arrows are longest at t=0 and shrink like (σ0/σ)^2.
+        grad_rel = (sigma0_mm / max(sigma_t, 1e-12)) ** 2  # dimensionless, ≤ 1
+
+        # Choose a visually nice base length at t=0 (e.g., 15% of x-span), then scale by grad_rel
+        L0 = 0.6 * (x_max - x_min)  # arrow length at t=0
+        L = L0 * grad_rel
+
+        # Clip arrows to stay within axes
+        dx_left_max = max(0.0, left_x - x_min)
+        dx_right_max = max(0.0, x_max - right_x)
+        dx_left = -min(L, dx_left_max)
+        dx_right = min(L, dx_right_max)
+
+        arrow_kw = dict(
+            width=0.02,
+            head_width=0.12,
+            head_length=0.18,
+            length_includes_head=True,
+            fc="0.2",
+            ec="0.2",
+            alpha=0.85,
+            clip_on=True,
+        )
+
+        if dx_left < 0:
+            ax_bot.add_patch(FancyArrow(left_x, y_fwhm, dx_left, 0.0, **arrow_kw))
+        if dx_right > 0:
+            ax_bot.add_patch(FancyArrow(right_x, y_fwhm, dx_right, 0.0, **arrow_kw))
+
+        arrow_handle = Line2D(
+            [],
+            [],
+            color="black",
+            lw=2,
+            alpha=arrow_kw.get("alpha", 1.0),
+            label="Concentration gradient",
+        )
+
+        handles, labels = ax_bot.get_legend_handles_labels()
+        handles.append(arrow_handle)
+        labels.append("Concentration gradient")
+        ax_bot.legend(loc="upper right", frameon=False, handles=handles)
 
         # Capture frame
         fig.canvas.draw()
@@ -698,4 +746,161 @@ def make_brownian_spread_gif(
             loop=0,
             optimize=True,
         )
-    return path
+    return
+
+
+__all__ = [
+    "skewed_profile",
+    "draw_profiles",
+    "add_flow",
+    "add_diffusion",
+]
+
+
+def skewed_profile(x, mu=0.0, sigma_L=0.55, sigma_R=0.55):
+    """Piecewise Gaussian with different left/right sigmas; normalized to peak=1."""
+    x = np.asarray(x)
+    y = np.empty_like(x, dtype=float)
+    mask = x < mu
+    y[mask] = np.exp(-1.0 * ((x[mask] - mu) / sigma_L) ** 2)
+    y[~mask] = np.exp(-1.0 * ((x[~mask] - mu) / sigma_R) ** 2)
+    ymax = y.max()
+    return y / (ymax if ymax > 0 else 1.0)
+
+
+def draw_profiles(
+    sigma_L=0.7,
+    sigma_R=0.7,
+    mu_top=0.0,
+    mu_bot=0.0,
+    *,
+    xlim=(-2, 3),
+    ylim=(-0.7, 0.7),
+    figsize=(5.4, 3.6),
+    color="C0",
+    alpha=0.85,
+    annotate_phases=True,
+):
+    """
+    Draw the mobile/stationary phases and a band polygon bridging them.
+    Returns (fig, ax) so callers can add arrows/labels.
+    """
+    fig, ax = plt.subplots(1, 1, figsize=figsize, constrained_layout=True)
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
+    ax.axis("off")
+
+    # Horizontal phase boundaries
+    y_mob, y_stat = +0.55, -0.55
+    ax.plot([xlim[0], xlim[1]], [0, 0], color="k", lw=1.2)
+
+    if annotate_phases:
+        ax.text(xlim[0], y_mob, "mobile phase", fontsize=12, va="center", ha="left")
+        ax.text(
+            xlim[0], y_stat, "stationary phase", fontsize=12, va="center", ha="left"
+        )
+
+    # Band shape across phases
+    x = np.linspace(xlim[0], xlim[1], 200)
+    f_top = skewed_profile(x, mu_top, sigma_L=sigma_L, sigma_R=sigma_R)  # 0..1
+    f_bot = skewed_profile(x, mu_bot, sigma_L=sigma_R, sigma_R=sigma_L)  # 0..1 (mirror)
+    margin = 0.08
+    span = (y_mob - margin) - (y_stat + margin)
+    y_top = (y_stat + margin) + 0.5 * span * (1 + f_top)
+    y_bot = (y_stat + margin) + 0.5 * span * (1 - f_bot)
+
+    ax.fill_between(x, y_bot, y_top, color=color, alpha=alpha, linewidth=0)
+    return fig, ax
+
+
+def _default_arrow_kw(color="0.2", head_width=0.12, head_length=0.18):
+    return dict(
+        width=0.02,
+        head_width=head_width,
+        head_length=head_length,
+        length_includes_head=True,
+        fc=color,
+        ec=color,
+        clip_on=True,
+    )
+
+
+def add_flow(
+    ax,
+    *,
+    start=(1.0, 0.25),
+    delta=(0.5, 0.0),
+    text="Flow",
+    text_offset=(0.0, 0.09),
+    color="0.2",
+    arrow_kw=None,
+    text_kwargs=None,
+):
+    """Add a single horizontal 'Flow' arrow with label."""
+    if arrow_kw is None:
+        arrow_kw = _default_arrow_kw(color=color, head_width=0.12, head_length=0.18)
+    if text_kwargs is None:
+        text_kwargs = {}
+    ax.add_patch(FancyArrow(start[0], start[1], delta[0], delta[1], **arrow_kw))
+    ax.text(
+        start[0] + text_offset[0],
+        start[1] + text_offset[1],
+        text,
+        ha="left",
+        va="bottom",
+        fontsize=12,
+        color=color,
+        fontweight="bold",
+        **text_kwargs,
+    )
+    return ax
+
+
+def add_diffusion(
+    ax,
+    *,
+    left_xy=(-0.5, 0.1),
+    right_xy=(1.25, -0.1),
+    dy=0.2,
+    text="Diffusion",
+    color="C1",
+    arrow_kw=None,
+    text_kwargs=None,
+):
+    """
+    Add the pair of vertical diffusion arrows (one up, one down) with labels.
+    Use arrow_kw to override width/head sizes; text_kwargs for font tweaks.
+    """
+    if arrow_kw is None:
+        arrow_kw = _default_arrow_kw(color=color, head_width=0.16, head_length=0.08)
+    if text_kwargs is None:
+        text_kwargs = {}
+
+    # left up
+    ax.add_patch(FancyArrow(left_xy[0], left_xy[1], 0.0, +dy, **arrow_kw))
+    # right down
+    ax.add_patch(FancyArrow(right_xy[0], right_xy[1], 0.0, -dy, **arrow_kw))
+
+    ax.text(
+        left_xy[0] - 0.1,
+        left_xy[1] + dy * 0.25,
+        text,
+        ha="right",
+        va="center",
+        fontsize=12,
+        color=color,
+        fontweight="bold",
+        **text_kwargs,
+    )
+    ax.text(
+        right_xy[0] + 0.1,
+        right_xy[1] - dy * 0.25,
+        text,
+        ha="left",
+        va="center",
+        fontsize=12,
+        color=color,
+        fontweight="bold",
+        **text_kwargs,
+    )
+    return ax
