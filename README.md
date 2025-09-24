@@ -64,7 +64,7 @@ This project is licensed as described in the **LICENSE** file.
 
 ## 🗂️ Available notebooks
 
-* **Title:** *“Van Deemter in Practice.”*
+* **Title:** *“01 – Van Deemter in Practice.”*
    * **Audience:** *Students and practitioners in analytical chemistry, chromatography, or method development.*
    * **Prereqs:** *None.*
    * **Learning outcomes:**
