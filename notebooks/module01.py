@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle, Polygon, FancyArrow
 
 
 def signif(x, p):
@@ -335,4 +336,142 @@ def plot_chromatograms(
         r"Effect of Plate Height $H$ on Chromatogram (3 peaks, same retention times) $-$ with resolutions $R_s$",
         fontsize=12.5,
     )
+    plt.show()
+
+
+def pencil(ax, x, y=1.0, width=0.8, height=4.2, band_specs=None, tip_h=0.6):
+    """
+    Draw a pencil-like vertical bar with optional colored bands.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        The axes to draw on.
+    x, y : float
+        Bottom-left reference point for the pencil tip area.
+    width, height : float
+        Width and height of the main rectangular body (excludes tip).
+    band_specs : list[tuple]
+        Each tuple: (y0, h, color) relative to the bottom of the body
+        (i.e., y + tip_h + y0).
+    tip_h : float
+        Height of the triangular tip.
+    """
+    # main body
+    body = Rectangle(
+        (x, y + tip_h),
+        width,
+        height,
+        facecolor="white",
+        edgecolor="black",
+        linewidth=1.5,
+    )
+    ax.add_patch(body)
+
+    # tip (triangle)
+    tip = Polygon(
+        [[x, y + tip_h], [x + width, y + tip_h], [x + width / 2, y]],
+        closed=True,
+        facecolor="white",
+        edgecolor="black",
+        linewidth=1.5,
+    )
+    ax.add_patch(tip)
+
+    # colored bands
+    if band_specs:
+        for y0, h, c in band_specs:
+            band = Rectangle(
+                (x, y + tip_h + y0),
+                width,
+                h,
+                facecolor=c,
+                edgecolor="black",
+                linewidth=1.5,
+            )
+            ax.add_patch(band)
+
+
+def draw_chromatography_pencils():
+    """
+    Recreate the pencil diagram from the chromatography fundamentals module,
+    with pedagogical labels.
+    """
+    # First two colors from the default color cycle (typically blue, orange)
+    c1, c2 = plt.rcParams["axes.prop_cycle"].by_key()["color"][:2]
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.set_xlim(0.5, 9.0)
+    ax.set_ylim(0, 6.4)  # a little headroom for the labels
+    ax.axis("off")
+
+    # Geometry helpers
+    xw = 0.8  # pencil width used for centering text
+
+    # Pencil 1 (bad)
+    x1 = 1.0
+    pencil(ax, x=x1, band_specs=[(2.6, 1.2, c1), (1.6, 1.0, c2)])
+    ax.text(
+        x1 + xw / 2,
+        6.2,
+        "Poor selectivity\nPoor efficiency",
+        ha="center",
+        va="top",
+        fontsize=10,
+    )
+
+    # Pencil 2
+    x2 = 3.1
+    pencil(ax, x=x2, band_specs=[(2.8, 0.8, c1), (1.8, 0.6, c2)])
+    ax.text(
+        x2 + xw / 2,
+        6.2,
+        "Poor selectivity\nMedium efficiency",
+        ha="center",
+        va="top",
+        fontsize=10,
+    )
+
+    # Pencil 3
+    x3 = 5.2
+    pencil(ax, x=x3, band_specs=[(2.8, 0.8, c1), (0.8, 0.6, c2)])
+    ax.text(
+        x3 + xw / 2,
+        6.2,
+        "Good selectivity\nMedium efficiency",
+        ha="center",
+        va="top",
+        fontsize=10,
+    )
+
+    # Pencil 4 (good)
+    x4 = 7.3
+    pencil(ax, x=x4, band_specs=[(3.0, 0.4, c1), (1.0, 0.2, c2)])
+    ax.text(
+        x4 + xw / 2,
+        6.2,
+        "Good selectivity\nGood efficiency",
+        ha="center",
+        va="top",
+        fontsize=10,
+    )
+
+    # Axis: Bad -> Good
+    ax.plot([0.8, 8.6], [0.5, 0.5], color="black", linewidth=1.5)
+    arrow = FancyArrow(
+        8.4,
+        0.5,
+        0.35,
+        0,
+        width=0.01,
+        head_width=0.15,
+        head_length=0.3,
+        length_includes_head=True,
+        color="black",
+    )
+    ax.add_patch(arrow)
+    ax.text(0.8, 0.2, "Bad", fontsize=12, ha="left", va="center")
+    ax.text(8.6, 0.2, "Good", fontsize=12, ha="right", va="center")
+
+    plt.tight_layout()
     plt.show()
