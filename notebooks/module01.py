@@ -552,9 +552,9 @@ def make_ldiffusion_gif(
 
         # Info box
         info = (
-            rf"$u={u:.2f}$ mm s$^{{-1}}$,  $D_m={D:.4f}$ mm$^2$ s$^{{-1}}$"
+            rf"$u={signif(u, 3)}$ mm s$^{{-1}}$,  $D_m={signif(D, 3)}$ mm$^2$ s$^{{-1}}$"
             + "\n"
-            + rf"$t={ti:.2f}$ s,  $\sigma_z(t)=\sqrt{{\beta D_m t}}={sigma_z:.2f}$ mm"
+            + rf"$t={signif(ti, 3)}$ s,  $\sigma_z(t)=\sqrt{{\beta D_m t}}={signif(sigma_z, 3)}$ mm"
         )
         ax.text(
             0.02,
@@ -647,11 +647,11 @@ def make_brownian_spread_gif(
         ax_top.text(
             0.02,
             0.90,
-            rf"$D_m={D_mm2_s:.4f}$ mm$^2$ s$^{{-1}}$"
+            rf"$D_m={signif(D_mm2_s, 3)}$ mm$^2$ s$^{{-1}}$"
             + "\n"
-            + rf"$t={t:5.2f}$ s"
+            + rf"$t={signif(t, 3)}$ s"
             + "\n"
-            + rf"$\sigma(t)=\sqrt{{\sigma_0^2+2Dt}}={sigma_t:.2f}$ mm",
+            + rf"$\sigma(t)=\sqrt{{\sigma_0^2+2Dt}}={signif(sigma_t, 3)}$ mm",
             transform=ax_top.transAxes,
             ha="left",
             va="top",
